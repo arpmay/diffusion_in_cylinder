@@ -1,6 +1,4 @@
-import numpy as np
 import scipy.special as sc
-import scipy.integrate as integrate
 from math import exp
 
 n = 100
