@@ -1,15 +1,14 @@
+# THIS IS THE NUMERICAL CALCULATION FOR THE ANALYTICAL SOLUTION
+# OF FICK'S EQUATION FOR A CYLINDER. REFER 'MATHEMATICS OF DIFFUSION'
+# BY CRANK FOR THE THEORY.
+
+
 import scipy.special as sc
 import scipy.integrate as integrate
 from math import exp
 
-n = 100
 
-
-def f(x):
-    return 10
-
-
-def C(r, t, a, conc, D):
+def C(r, t, a, conc, D, n=100):
     a_alpha = sc.jn_zeros(0, n)
     series_sum = 0
     for i in range(0, n):
