@@ -157,7 +157,7 @@ def save_data_r():
 radial_plot_frame = ttk.Frame(notebook, width=root.winfo_width(), height=root.winfo_height())
 radial_plot_frame.pack(fill='both', expand=True)
 
-radial_plot_frame.rowconfigure(0, weight=10)
+radial_plot_frame.rowconfigure(0, weight=6)
 radial_plot_frame.rowconfigure(1, weight=1)
 radial_plot_frame.rowconfigure(2, weight=1)
 radial_plot_frame.rowconfigure(3, weight=1)
@@ -240,14 +240,14 @@ n_point_entry_r = tk.Entry(radial_plot_frame, textvariable=n_point_r)
 n_point_entry_r.grid(column=1, row=3, sticky='W', pady=pdy, padx=pdx)
 
 # calculate button
-calc_r = tk.Button(radial_plot_frame, text="Calculate",
+calc_r = tk.Button(radial_plot_frame, text="Plot",
                    command=lambda: plot_radial(figure_r, figure_canvas_r, t_r.get(),
                                                a_r.get(), conc_r.get(), D_r.get(), n_point_r.get()))
-calc_r.grid(column=1, row=4, sticky='EW')
+calc_r.grid(column=1, row=4, sticky='EW', padx=pdx, pady=pdy)
 
 # save data button
 save_r = tk.Button(radial_plot_frame, text="Save Data", command=lambda: save_data_r())
-save_r.grid(column=2, row=4, sticky='EW')
+save_r.grid(column=2, row=4, sticky='EW', padx=pdx, pady=pdy)
 
 #######################
 # TEMPORAL PLOT FRAME #
@@ -313,7 +313,7 @@ temporal_plot_frame.columnconfigure(3, weight=2)
 temporal_plot = ttk.Frame(temporal_plot_frame, width=temporal_plot_frame.winfo_width(), height=temporal_plot_frame.winfo_height())
 
 # Figure
-figure_t = Figure(figsize=(6, 4), dpi=100)
+figure_t = Figure(figsize=(8, 4.5), dpi=100)
 
 # create FigureCanvasTkAgg object
 figure_canvas_t = FigureCanvasTkAgg(figure_t, temporal_plot)
@@ -400,11 +400,11 @@ calc_t = tk.Button(
         figure_t, figure_canvas_t, r_t.get(), a_t.get(),
         t_total_t.get(), time_interval_t.get(), conc_t.get(), D_t.get()))
 
-calc_t.grid(column=1, columnspan=1, sticky='EW', padx=pdx, row=4)
+calc_t.grid(column=1, columnspan=1, sticky='EW', padx=pdx, pady=pdy, row=4)
 
 # save data button
 save_t = tk.Button(temporal_plot_frame, text="Save Data", command=lambda: save_data_r())
-save_t.grid(column=2, columnspan=1, sticky='EW', padx=pdx, row=4)
+save_t.grid(column=2, columnspan=1, sticky='EW', padx=pdx, pady=pdy, row=4)
 
 # add frames to notebook
 notebook.add(calc_frame, text="Calculator")
