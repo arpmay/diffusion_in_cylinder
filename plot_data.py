@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from dehyroxy_func import C
 
 
-def radial_profile(t, a, D, conc, n=50):
+def radial_profile(t, a, D, conc, n):
     r_plot = []
     for i in range(0, n):
         r_plot.append(C((i / n) * a, t, a, conc, D))

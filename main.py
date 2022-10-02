@@ -3,6 +3,7 @@ import tkinter as tk
 from tkinter import filedialog, ttk
 import matplotlib
 
+# noinspection PyProtectedMember
 from matplotlib.backends._backend_tk import NavigationToolbar2Tk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
@@ -117,7 +118,7 @@ x_r = None
 y_r = None
 
 
-def plot_radial(figure, figure_canvas_r, t, a, conc, D):
+def plot_radial(figure, figure_canvas_r, t, a, conc, D, n_point_r):
     t = float(t)
     a = float(a)/1000
     conc = float(conc)
@@ -131,8 +132,8 @@ def plot_radial(figure, figure_canvas_r, t, a, conc, D):
     global x_r
     global y_r
 
-    x_r = np.linspace(0, a*1000, num=50)
-    y_r = radial_profile(t, a, D, conc)
+    x_r = np.linspace(0, a*1000, num=int(n_point_r))
+    y_r = radial_profile(t, a, D, conc, int(n_point_r))
 
     axes.plot(x_r, y_r)
     figure_canvas_r.draw()
@@ -186,7 +187,7 @@ figure_canvas_r.get_tk_widget().pack(fill='both', expand=True)
 # packing radial_plot frame
 radial_plot['borderwidth'] = 1
 radial_plot['relief'] = 'solid'
-radial_plot.grid(row=0, column=0, columnspan=6, sticky="NSEW", padx=10)
+radial_plot.grid(row=0, column=0, columnspan=6, sticky="NSEW", padx=pdx)
 
 
 # Diffusion coefficient entry
@@ -229,24 +230,38 @@ t_r.set('3600')
 time_entry_r = tk.Entry(radial_plot_frame, textvariable=t_r)
 time_entry_r.grid(column=3, row=2, sticky='W', pady=pdy, padx=pdx)
 
+# No. of points entry
+n_point_label_r = tk.Label(radial_plot_frame, text="No. of points")
+n_point_label_r.grid(column=0, row=3, padx=pdx, pady=pdy, sticky='E')
+
+n_point_r = tk.StringVar()
+n_point_r.set('100')
+n_point_entry_r = tk.Entry(radial_plot_frame, textvariable=n_point_r)
+n_point_entry_r.grid(column=1, row=3, sticky='W', pady=pdy, padx=pdx)
+
 # calculate button
-calc_r = tk.Button(radial_plot_frame, text="Calculate", command=lambda: plot_radial(figure_r, figure_canvas_r, t_r.get(), a_r.get(), conc_r.get(), D_r.get()))
-calc_r.grid(column=0, columnspan=3, row=3)
+calc_r = tk.Button(radial_plot_frame, text="Calculate",
+                   command=lambda: plot_radial(figure_r, figure_canvas_r, t_r.get(),
+                                               a_r.get(), conc_r.get(), D_r.get(), n_point_r.get()))
+calc_r.grid(column=1, row=4, sticky='EW')
 
 # save data button
 save_r = tk.Button(radial_plot_frame, text="Save Data", command=lambda: save_data_r())
-save_r.grid(column=1, columnspan=3, row=3)
+save_r.grid(column=2, row=4, sticky='EW')
 
 #######################
 # TEMPORAL PLOT FRAME #
 #######################
+
+x_t = None
+y_t = None
 
 
 def plot_temporal(figure, figure_canvas, r, a, T, dT, conc, D):
     r = float(r)/1000 # mm to meter conversion
     a = float(a)/1000 # mm to meter conversion
     conc = float(conc)
-    D = float(D)*(1e-4) # m2/s to cm2/s conversion
+    D = float(D)*(1e-4) # cm2/s to m2/s conversion
     T = int(T)
     dT = int(dT)
     figure.clf()
@@ -255,8 +270,30 @@ def plot_temporal(figure, figure_canvas, r, a, T, dT, conc, D):
     axes.set_ylim([0, 1.1*conc])
     axes.title.set_text(f'Concentration w.r.t time at r = {r*1000}mm')
     axes.set(xlabel='Time(s)', ylabel='Concentration')
-    axes.plot(np.linspace(0, T, num=math.ceil(T/dT)), temporal_profile(r, a, T, dT, D, conc))
+
+    global x_t
+    global y_t
+
+    x_t = np.linspace(0, T, num=math.ceil(T/dT))
+    y_t = temporal_profile(r, a, T, dT, D, conc)
+
+    axes.plot(x_t, y_t)
     figure_canvas.draw()
+
+
+def save_data_t():
+    global x_t
+    global y_t
+    files = [('CSV file', '*.csv'),
+             ('All Files', '*.*')]
+    f = filedialog.asksaveasfile(initialfile='data.csv', filetypes=files, defaultextension='.csv', mode='w')
+    if f is None:  # asksaveasfile return `None` if dialog closed with "cancel".
+        return
+    y = np.array(y_t)
+    xy_data = np.array([x_t, y])
+    xy_data = xy_data.transpose()
+    np.savetxt(f, xy_data, delimiter=',')
+    f.close()  # `()` was missing.
 
 
 temporal_plot_frame = ttk.Frame(notebook, width=root.winfo_width(), height=root.winfo_height())
@@ -290,7 +327,7 @@ NavigationToolbar2Tk(figure_canvas_t, temporal_plot)
 figure_canvas_t.get_tk_widget().pack(fill='both', expand=True)
 
 # packing temporal_plot frame
-temporal_plot.grid(row=0, column=0, columnspan=6, sticky="NSEW", padx=10)
+temporal_plot.grid(row=0, column=0, columnspan=6, sticky="NSEW", padx=pdx)
 temporal_plot['borderwidth'] = 1
 temporal_plot['relief'] = 'solid'
 
@@ -363,8 +400,11 @@ calc_t = tk.Button(
         figure_t, figure_canvas_t, r_t.get(), a_t.get(),
         t_total_t.get(), time_interval_t.get(), conc_t.get(), D_t.get()))
 
-calc_t.grid(column=0, columnspan=6, row=4)
+calc_t.grid(column=1, columnspan=1, sticky='EW', padx=pdx, row=4)
 
+# save data button
+save_t = tk.Button(temporal_plot_frame, text="Save Data", command=lambda: save_data_r())
+save_t.grid(column=2, columnspan=1, sticky='EW', padx=pdx, row=4)
 
 # add frames to notebook
 notebook.add(calc_frame, text="Calculator")
