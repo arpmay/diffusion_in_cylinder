@@ -23,16 +23,12 @@ pdy = 5
 
 root = tk.Tk()
 root.geometry('600x600')
-root.title('Diffusion Sim')
+root.title('Dehydroxylation Calculator')
 
 # create a notebook
 notebook = ttk.Notebook(root)
 notebook.pack(pady=0, fill='both', expand=True)
 
-# create frames
-simulation_frame = ttk.Frame(notebook, width=400, height=200)
-
-simulation_frame.pack(fill='both', expand=True)
 
 ##################
 # CALCULATOR FRAME
@@ -40,11 +36,11 @@ simulation_frame.pack(fill='both', expand=True)
 
 
 def solve(r, t, a, conc, D, label):
-    r = float(r)
+    r = float(r)/1000
     t = float(t)
-    a = float(a)
+    a = float(a)/1000
     conc = float(conc)
-    D = float(D)
+    D = float(D)*(1e-4)
 
     label.config(text=str(C(r, t, a, conc, D)))
 
@@ -56,37 +52,41 @@ calc_frame.columnconfigure(1, weight=4)
 
 # Diffusion coefficient entry
 
-dif_label_c = tk.Label(calc_frame, text="Diffusion Coefficient")
+dif_label_c = tk.Label(calc_frame, text="Diffusion Coefficient(cm2/s)")
 dif_label_c.grid(column=0, row=0)
 
 D_c = tk.StringVar()
+D_c.set('1e-7')
 dif_entry_c = tk.Entry(calc_frame, textvariable=D_c)
 dif_entry_c.grid(column=1, row=0, sticky='EW', pady=pdy, padx=pdx)
 
 # Radius entry
 
-radius_label_c = tk.Label(calc_frame, text="Radius")
+radius_label_c = tk.Label(calc_frame, text="Radius(mm)")
 radius_label_c.grid(column=0, row=1)
 
 a_c = tk.StringVar()
+a_c.set('50')
 radius_entry_c = tk.Entry(calc_frame, textvariable=a_c)
 radius_entry_c.grid(column=1, row=1, sticky='EW', pady=pdy, padx=pdx)
 
 # initial concentration entry
 
-init_conc_label_c = tk.Label(calc_frame, text="Initial Concentration")
+init_conc_label_c = tk.Label(calc_frame, text="Initial Concentration(unit)")
 init_conc_label_c.grid(column=0, row=2)
 
 conc_c = tk.StringVar()
+conc_c.set('100')
 conc_entry_c = tk.Entry(calc_frame, textvariable=conc_c)
 conc_entry_c.grid(column=1, row=2, sticky='EW', pady=pdy, padx=pdx)
 
 # Time entry
 
-time_label_c = tk.Label(calc_frame, text="Time")
+time_label_c = tk.Label(calc_frame, text="Time(s)")
 time_label_c.grid(column=0, row=3)
 
 t_c = tk.StringVar()
+t_c.set('3600')
 time_entry_c = tk.Entry(calc_frame, textvariable=t_c)
 time_entry_c.grid(column=1, row=3, sticky='EW', pady=pdy, padx=pdx)
 
@@ -96,17 +96,21 @@ r_label_c = tk.Label(calc_frame, text="Radial Dist.")
 r_label_c.grid(column=0, row=4)
 
 r_c = tk.StringVar()
+r_c.set('45')
 r_entry_c = tk.Entry(calc_frame, textvariable=r_c)
 r_entry_c.grid(column=1, row=4, sticky='EW', pady=pdy, padx=pdx)
 
 # result label
+result_label = tk.Label(calc_frame, text="Concentration = ")
+result_label.grid(column=0, row=5, sticky='EW')
+
 result_label_c = tk.Label(calc_frame, text="")
-result_label_c.grid(column=0, row=6, columnspan=2)
+result_label_c.grid(column=1, row=5, columnspan=2, sticky='W')
 
 # calculate button
 calc_c = tk.Button(calc_frame, text="Calculate",
                    command=lambda: solve(r_c.get(), t_c.get(), a_c.get(), conc_c.get(), D_c.get(), result_label_c))
-calc_c.grid(column=0, columnspan=2, row=5)
+calc_c.grid(column=0, columnspan=2, row=6)
 
 
 ###################
@@ -378,7 +382,7 @@ radial_distance_label_t = tk.Label(temporal_plot_frame, text="Radial Distance(mm
 radial_distance_label_t.grid(column=0, row=3, padx=pdx, pady=pdy, sticky='E')
 
 r_t = tk.StringVar()
-r_t.set("5")
+r_t.set("9")
 radial_distance_entry_t = tk.Entry(temporal_plot_frame, textvariable=r_t)
 radial_distance_entry_t.grid(column=1, row=3, sticky='W', padx=pdx, pady=pdy)
 
@@ -388,7 +392,7 @@ time_interval_label_t = tk.Label(temporal_plot_frame, text="Time interval(>= 1s)
 time_interval_label_t.grid(column=2, row=3, padx=pdx, pady=pdy, sticky='E')
 
 time_interval_t = tk.StringVar()
-time_interval_t.set("1")
+time_interval_t.set("300")
 time_interval_entry_t = tk.Entry(temporal_plot_frame, textvariable=time_interval_t)
 time_interval_entry_t.grid(column=3, row=3, sticky='W', pady=pdy, padx=pdx)
 
@@ -403,14 +407,13 @@ calc_t = tk.Button(
 calc_t.grid(column=1, columnspan=1, sticky='EW', padx=pdx, pady=pdy, row=4)
 
 # save data button
-save_t = tk.Button(temporal_plot_frame, text="Save Data", command=lambda: save_data_r())
+save_t = tk.Button(temporal_plot_frame, text="Save Data", command=lambda: save_data_t())
 save_t.grid(column=2, columnspan=1, sticky='EW', padx=pdx, pady=pdy, row=4)
 
 # add frames to notebook
 notebook.add(calc_frame, text="Calculator")
 notebook.add(radial_plot_frame, text='Radial Plot')
 notebook.add(temporal_plot_frame, text='Temporal Plot')
-notebook.add(simulation_frame, text='Simulation')
 
 
 
