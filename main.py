@@ -1,19 +1,21 @@
+import math
 import tkinter as tk
-from tkinter import ttk
+from tkinter import filedialog, ttk
 import matplotlib
 
 from matplotlib.backends._backend_tk import NavigationToolbar2Tk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
-from numpy import linspace
+import numpy as np
+
 from dehyroxy_func import C
 from plot_data import radial_profile, temporal_profile
 
 matplotlib.use("TkAgg")
 
 # padding
-pdx = 10
-pdy = 10
+pdx = 5
+pdy = 5
 
 # root window
 
@@ -27,10 +29,8 @@ notebook = ttk.Notebook(root)
 notebook.pack(pady=0, fill='both', expand=True)
 
 # create frames
-temporal_plot_frame = ttk.Frame(notebook, width=400, height=200)
 simulation_frame = ttk.Frame(notebook, width=400, height=200)
 
-temporal_plot_frame.pack(fill='both', expand=True)
 simulation_frame.pack(fill='both', expand=True)
 
 ##################
@@ -112,20 +112,45 @@ calc_c.grid(column=0, columnspan=2, row=5)
 # RADIAL PLOT FRAME
 ###################
 
+# DATA VARIABLE
+x_r = None
+y_r = None
+
 
 def plot_radial(figure, figure_canvas_r, t, a, conc, D):
     t = float(t)
     a = float(a)/1000
     conc = float(conc)
-    D = float(D)
+    D = float(D)*(1e-4)
     figure.clf()
     axes = figure.add_subplot()
     axes.set_xlim([0, 1.1*a*1000])
     axes.set_ylim([0, 1.1*conc])
     axes.title.set_text(f'Concentration along radius at t = {int(t)} seconds')
     axes.set(xlabel='Radial Distance(mm)', ylabel='Concentration')
-    axes.plot(linspace(0, a*1000, num=250), radial_profile(t, a, D, conc))
+    global x_r
+    global y_r
+
+    x_r = np.linspace(0, a*1000, num=50)
+    y_r = radial_profile(t, a, D, conc)
+
+    axes.plot(x_r, y_r)
     figure_canvas_r.draw()
+
+
+def save_data_r():
+    global x_r
+    global y_r
+    files = [('CSV file', '*.csv'),
+             ('All Files', '*.*')]
+    f = filedialog.asksaveasfile(initialfile='data.csv', filetypes=files, defaultextension='.csv', mode='w')
+    if f is None:  # asksaveasfile return `None` if dialog closed with "cancel".
+        return
+    y = np.array(y_r)
+    xy_data = np.array([x_r, y])
+    xy_data = xy_data.transpose()
+    np.savetxt(f, xy_data, delimiter=',')
+    f.close()  # `()` was missing.
 
 
 radial_plot_frame = ttk.Frame(notebook, width=root.winfo_width(), height=root.winfo_height())
@@ -166,10 +191,11 @@ radial_plot.grid(row=0, column=0, columnspan=6, sticky="NSEW", padx=10)
 
 # Diffusion coefficient entry
 
-dif_label_r = tk.Label(radial_plot_frame, text="Diffusion Coefficient(m2/s)")
+dif_label_r = tk.Label(radial_plot_frame, text="Diffusion Coefficient(cm2/s)")
 dif_label_r.grid(column=0, row=1, padx=pdx, pady=pdy, sticky='E')
 
 D_r = tk.StringVar()
+D_r.set('1e-9')
 dif_entry_r = tk.Entry(radial_plot_frame, textvariable=D_r)
 dif_entry_r.grid(column=1, row=1, sticky='W', padx=pdx, pady=pdy)
 
@@ -179,6 +205,7 @@ dif_label_r = tk.Label(radial_plot_frame, text="Radius(mm)")
 dif_label_r.grid(column=2, row=1, padx=pdx, pady=pdy, sticky='E')
 
 a_r = tk.StringVar()
+a_r.set('50')
 radius_entry_r = tk.Entry(radial_plot_frame, textvariable=a_r)
 radius_entry_r.grid(column=3, row=1, sticky='W', padx=pdx, pady=pdy)
 
@@ -188,6 +215,7 @@ init_conc_label_r = tk.Label(radial_plot_frame, text="Initial Concentration")
 init_conc_label_r.grid(column=0, row=2, sticky='E', padx=pdx, pady=pdy)
 
 conc_r = tk.StringVar()
+conc_r.set('100')
 conc_entry_r = tk.Entry(radial_plot_frame, textvariable=conc_r)
 conc_entry_r.grid(column=1, row=2, sticky='W', pady=pdy, padx=pdx)
 
@@ -197,107 +225,145 @@ time_label_r = tk.Label(radial_plot_frame, text="Time")
 time_label_r.grid(column=2, row=2, padx=pdx, pady=pdy, sticky='E')
 
 t_r = tk.StringVar()
+t_r.set('3600')
 time_entry_r = tk.Entry(radial_plot_frame, textvariable=t_r)
 time_entry_r.grid(column=3, row=2, sticky='W', pady=pdy, padx=pdx)
 
-
 # calculate button
 calc_r = tk.Button(radial_plot_frame, text="Calculate", command=lambda: plot_radial(figure_r, figure_canvas_r, t_r.get(), a_r.get(), conc_r.get(), D_r.get()))
-calc_r.grid(column=0, columnspan=6, row=3)
+calc_r.grid(column=0, columnspan=3, row=3)
 
-"""
+# save data button
+save_r = tk.Button(radial_plot_frame, text="Save Data", command=lambda: save_data_r())
+save_r.grid(column=1, columnspan=3, row=3)
+
 #######################
 # TEMPORAL PLOT FRAME #
 #######################
-def plot_temporal(figure, figure_canvas_t, r, a, conc, D):
-    r = float(r)
-    a = float(a)
+
+
+def plot_temporal(figure, figure_canvas, r, a, T, dT, conc, D):
+    r = float(r)/1000 # mm to meter conversion
+    a = float(a)/1000 # mm to meter conversion
     conc = float(conc)
-    D = float(D)
+    D = float(D)*(1e-4) # m2/s to cm2/s conversion
+    T = int(T)
+    dT = int(dT)
+    figure.clf()
     axes = figure.add_subplot()
-    axes.set_xlim([0, 1.1*250])
+    axes.set_xlim([0, 1.1*T])
     axes.set_ylim([0, 1.1*conc])
-    axes.title.set_text(f'Concentration along radius at t = {t} seconds')
-    axes.set(xlabel='Radial Distance', ylabel='Concentration')
-    axes.plot(radial_profile(t, a, D, conc))
-    figure_canvas_t.draw()
+    axes.title.set_text(f'Concentration w.r.t time at r = {r*1000}mm')
+    axes.set(xlabel='Time(s)', ylabel='Concentration')
+    axes.plot(np.linspace(0, T, num=math.ceil(T/dT)), temporal_profile(r, a, T, dT, D, conc))
+    figure_canvas.draw()
 
 
-radial_plot_frame = ttk.Frame(notebook, width=root.winfo_width(), height=root.winfo_height())
-radial_plot_frame.pack(fill='both', expand=True)
+temporal_plot_frame = ttk.Frame(notebook, width=root.winfo_width(), height=root.winfo_height())
+temporal_plot_frame.pack(fill='both', expand=True)
 
-radial_plot_frame.rowconfigure(0, weight=6)
-radial_plot_frame.rowconfigure(1, weight=1)
-radial_plot_frame.rowconfigure(2, weight=1)
-radial_plot_frame.rowconfigure(3, weight=1)
+temporal_plot_frame.rowconfigure(0, weight=6)
+temporal_plot_frame.rowconfigure(1, weight=1)
+temporal_plot_frame.rowconfigure(2, weight=1)
+temporal_plot_frame.rowconfigure(3, weight=1)
 
-radial_plot_frame.columnconfigure(0, weight=1)
-radial_plot_frame.columnconfigure(1, weight=2)
-radial_plot_frame.columnconfigure(2, weight=1)
-radial_plot_frame.columnconfigure(3, weight=2)
+temporal_plot_frame.columnconfigure(0, weight=1)
+temporal_plot_frame.columnconfigure(1, weight=2)
+temporal_plot_frame.columnconfigure(2, weight=1)
+temporal_plot_frame.columnconfigure(3, weight=2)
 
 # frame for plot
-radial_plot = ttk.Frame(radial_plot_frame)
+temporal_plot = ttk.Frame(temporal_plot_frame, width=temporal_plot_frame.winfo_width(), height=temporal_plot_frame.winfo_height())
 
 # Figure
-figure_r = Figure(figsize=(6, 4), dpi=100)
+figure_t = Figure(figsize=(6, 4), dpi=100)
 
 # create FigureCanvasTkAgg object
-figure_canvas_r = FigureCanvasTkAgg(figure_r, radial_plot)
+figure_canvas_t = FigureCanvasTkAgg(figure_t, temporal_plot)
 
 # create the toolbar
-NavigationToolbar2Tk(figure_canvas_r, radial_plot)
+NavigationToolbar2Tk(figure_canvas_t, temporal_plot)
 
 # create axes
-# axes = figure_r.add_subplot()
+# axes = figure_t.add_subplot()
 
-figure_canvas_r.get_tk_widget().pack(fill='both', expand=True)
+figure_canvas_t.get_tk_widget().pack(fill='both', expand=True)
 
-# packing radial_plot frame
-radial_plot.grid(row=0, column=0, columnspan=6, sticky="EW")
-
+# packing temporal_plot frame
+temporal_plot.grid(row=0, column=0, columnspan=6, sticky="NSEW", padx=10)
+temporal_plot['borderwidth'] = 1
+temporal_plot['relief'] = 'solid'
 
 # Diffusion coefficient entry
 
-dif_label_r = tk.Label(radial_plot_frame, text="Diffusion Coefficient")
-dif_label_r.grid(column=0, row=1, padx=pdx, pady=pdy, sticky='E')
+dif_label_t = tk.Label(temporal_plot_frame, text="Diffusion Coefficient(cm2/s)")
+dif_label_t.grid(column=0, row=1, padx=pdx, pady=pdy, sticky='E')
 
-D_r = tk.StringVar()
-dif_entry_r = tk.Entry(radial_plot_frame, textvariable=D_r)
-dif_entry_r.grid(column=1, row=1, sticky='W', padx=pdx, pady=pdy)
-
-# Radius entry
-
-dif_label_r = tk.Label(radial_plot_frame, text="Radius")
-dif_label_r.grid(column=2, row=1, padx=pdx, pady=pdy, sticky='E')
-
-a_r = tk.StringVar()
-radius_entry_r = tk.Entry(radial_plot_frame, textvariable=a_r)
-radius_entry_r.grid(column=3, row=1, sticky='W', padx=pdx, pady=pdy)
+D_t = tk.StringVar()
+D_t.set("1e-7")
+dif_entry_t = tk.Entry(temporal_plot_frame, textvariable=D_t)
+dif_entry_t.grid(column=1, row=1, sticky='W', padx=pdx, pady=pdy)
 
 # initial concentration entry
 
-init_conc_label_r = tk.Label(radial_plot_frame, text="Initial Concentration")
-init_conc_label_r.grid(column=0, row=2, sticky='E', padx=pdx, pady=pdy)
+init_conc_label_t = tk.Label(temporal_plot_frame, text="Initial Concentration(unit)")
+init_conc_label_t.grid(column=2, row=1, sticky='E', padx=pdx, pady=pdy)
 
-conc_r = tk.StringVar()
-conc_entry_r = tk.Entry(radial_plot_frame, textvariable=conc_r)
-conc_entry_r.grid(column=1, row=2, sticky='W', pady=pdy, padx=pdx)
+conc_t = tk.StringVar()
+conc_t.set("10")
+conc_entry_t = tk.Entry(temporal_plot_frame, textvariable=conc_t)
+conc_entry_t.grid(column=3, row=1, sticky='W', pady=pdy, padx=pdx)
 
-# Time entry
+# Radius entry
 
-time_label_r = tk.Label(radial_plot_frame, text="Time")
-time_label_r.grid(column=2, row=2, padx=pdx, pady=pdy, sticky='E')
+dif_label_t = tk.Label(temporal_plot_frame, text="Radius(mm)")
+dif_label_t.grid(column=0, row=2, padx=pdx, pady=pdy, sticky='E')
 
-t_r = tk.StringVar()
-time_entry_r = tk.Entry(radial_plot_frame, textvariable=t_r)
-time_entry_r.grid(column=3, row=2, sticky='W', pady=pdy, padx=pdx)
+a_t = tk.StringVar()
+a_t.set("10")
+radius_entry_t = tk.Entry(temporal_plot_frame, textvariable=a_t)
+radius_entry_t.grid(column=1, row=2, sticky='W', padx=pdx, pady=pdy)
+
+
+# Total Time entry
+
+total_time_label_t = tk.Label(temporal_plot_frame, text="Total Time(s)")
+total_time_label_t.grid(column=2, row=2, padx=pdx, pady=pdy, sticky='E')
+
+t_total_t = tk.StringVar()
+t_total_t.set("3600")
+total_time_entry_t = tk.Entry(temporal_plot_frame, textvariable=t_total_t)
+total_time_entry_t.grid(column=3, row=2, sticky='W', pady=pdy, padx=pdx)
+
+# Radial distance entry
+
+radial_distance_label_t = tk.Label(temporal_plot_frame, text="Radial Distance(mm)")
+radial_distance_label_t.grid(column=0, row=3, padx=pdx, pady=pdy, sticky='E')
+
+r_t = tk.StringVar()
+r_t.set("5")
+radial_distance_entry_t = tk.Entry(temporal_plot_frame, textvariable=r_t)
+radial_distance_entry_t.grid(column=1, row=3, sticky='W', padx=pdx, pady=pdy)
+
+# Time interval entry
+
+time_interval_label_t = tk.Label(temporal_plot_frame, text="Time interval(>= 1s)")
+time_interval_label_t.grid(column=2, row=3, padx=pdx, pady=pdy, sticky='E')
+
+time_interval_t = tk.StringVar()
+time_interval_t.set("1")
+time_interval_entry_t = tk.Entry(temporal_plot_frame, textvariable=time_interval_t)
+time_interval_entry_t.grid(column=3, row=3, sticky='W', pady=pdy, padx=pdx)
 
 
 # calculate button
-calc_r = tk.Button(radial_plot_frame, text="Calculate", command=lambda: plot_radial(figure_r, figure_canvas_r, t_r.get(), a_r.get(), conc_r.get(), D_r.get()))
-calc_r.grid(column=0, columnspan=6, row=3)
-"""
+calc_t = tk.Button(
+    temporal_plot_frame, text="Plot",
+    command=lambda: plot_temporal(
+        figure_t, figure_canvas_t, r_t.get(), a_t.get(),
+        t_total_t.get(), time_interval_t.get(), conc_t.get(), D_t.get()))
+
+calc_t.grid(column=0, columnspan=6, row=4)
 
 
 # add frames to notebook
