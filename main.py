@@ -200,7 +200,7 @@ dif_label_r = tk.Label(radial_plot_frame, text="Diffusion Coefficient(cm2/s)")
 dif_label_r.grid(column=0, row=1, padx=pdx, pady=pdy, sticky='E')
 
 D_r = tk.StringVar()
-D_r.set('1e-9')
+D_r.set('3.71e-5')
 dif_entry_r = tk.Entry(radial_plot_frame, textvariable=D_r)
 dif_entry_r.grid(column=1, row=1, sticky='W', padx=pdx, pady=pdy)
 
@@ -230,7 +230,7 @@ time_label_r = tk.Label(radial_plot_frame, text="Time")
 time_label_r.grid(column=2, row=2, padx=pdx, pady=pdy, sticky='E')
 
 t_r = tk.StringVar()
-t_r.set('3600')
+t_r.set('36000')
 time_entry_r = tk.Entry(radial_plot_frame, textvariable=t_r)
 time_entry_r.grid(column=3, row=2, sticky='W', pady=pdy, padx=pdx)
 
@@ -410,11 +410,25 @@ calc_t.grid(column=1, columnspan=1, sticky='EW', padx=pdx, pady=pdy, row=4)
 save_t = tk.Button(temporal_plot_frame, text="Save Data", command=lambda: save_data_t())
 save_t.grid(column=2, columnspan=1, sticky='EW', padx=pdx, pady=pdy, row=4)
 
+
+#################
+# ABOUT SECTION #
+#################
+
+about_frame = ttk.Frame(notebook, width=root.winfo_width(), height=root.winfo_height())
+about_frame.pack(fill='both', expand=True)
+
+# Heading label
+heading_label = ttk.Label(about_frame, text="About", font=('Helvetica', 14))
+heading_label.pack()
+
+
+
 # add frames to notebook
 notebook.add(calc_frame, text="Calculator")
 notebook.add(radial_plot_frame, text='Radial Plot')
 notebook.add(temporal_plot_frame, text='Temporal Plot')
-
+notebook.add(about_frame, text='About')
 
 
 
