@@ -9,9 +9,9 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 import numpy as np
 
-from dehyroxy_func import C
-from plot_data import radial_profile, temporal_profile, simulation_profile
 
+from plot_data import radial_profile, temporal_profile, simulation_profile
+from calculator_tab import calculator_tab
 matplotlib.use("TkAgg")
 
 # padding
@@ -34,7 +34,9 @@ notebook.pack(pady=0, fill='both', expand=True)
 # CALCULATOR FRAME
 ##################
 
+calc_frame = calculator_tab(notebook, pdx, pdy)
 
+"""
 def solve(r, t, a, conc, D, label):
     r = float(r)/1000
     t = float(t)
@@ -111,6 +113,8 @@ result_label_c.grid(column=1, row=5, columnspan=2, sticky='W')
 calc_c = tk.Button(calc_frame, text="Calculate",
                    command=lambda: solve(r_c.get(), t_c.get(), a_c.get(), conc_c.get(), D_c.get(), result_label_c))
 calc_c.grid(column=0, columnspan=2, row=6)
+"""
+
 
 
 ###################
