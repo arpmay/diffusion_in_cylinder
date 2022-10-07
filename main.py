@@ -4,7 +4,7 @@ from tkinter import ttk
 from calculator_tab import calculator_tab
 from radial_plot_tab import radial_plot_tab
 from temporal_plot_tab import temporal_plot_tab
-from simulation_tab import simulation_tab
+from cc_simulation_tab import cc_simulation_tab
 
 # padding
 pdx = 5
@@ -40,12 +40,18 @@ radial_plot_frame = radial_plot_tab(notebook, pdx, pdy)
 
 temporal_plot_frame = temporal_plot_tab(notebook, pdx, pdy)
 
-##################
-# SIMULATION FRAME
-##################
+##############################
+# C-C SIMULATION FRAME
+##############################
 
-simulation_plot_frame = simulation_tab(notebook, pdx, pdy)
+cc_simulation_plot_frame = cc_simulation_tab(notebook, pdx, pdy)
 
+
+######################
+# P-C SIMULATION FRAME
+######################
+
+pc_simulation_plot_frame = pc_simulation_tab(notebook, pdx, pdy)
 
 #################
 # ABOUT SECTION #
@@ -63,7 +69,8 @@ heading_label.pack()
 notebook.add(calc_frame, text="Calculator")
 notebook.add(radial_plot_frame, text='Radial Plot')
 notebook.add(temporal_plot_frame, text='Temporal Plot')
-notebook.add(simulation_plot_frame, text="Simulation")
+notebook.add(cc_simulation_plot_frame, text="CC Simulation")
+notebook.add(pc_simulation_plot_frame, text='PC Simulation')
 notebook.add(about_frame, text='About')
 
 

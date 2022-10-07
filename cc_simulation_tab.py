@@ -10,7 +10,7 @@ from matplotlib.figure import Figure
 import numpy as np
 
 
-from plot_data import simulation_profile
+from plot_data import cc_simulation_profile
 
 matplotlib.use("TkAgg")
 
@@ -37,7 +37,7 @@ def plot_simulation(figure, figure_canvas, c_sat, D, a, tin, tout, n_point_r, n=
     global y_s
 
     x_s = np.linspace(0, 1000*a, num=n_point_r)
-    y_s = simulation_profile(c_sat, D, a, tin, tout, n_point_r)
+    y_s = cc_simulation_profile(c_sat, D, a, tin, tout, n_point_r)
 
     axes.plot(x_s, y_s)
     figure_canvas.draw()
@@ -58,7 +58,7 @@ def save_data_s():
     f.close()  # `()` was missing.
 
 
-def simulation_tab(notebook, pdx, pdy):
+def cc_simulation_tab(notebook, pdx, pdy):
     simulation_plot_frame = ttk.Frame(notebook, width=notebook.winfo_width(), height=notebook.winfo_height())
     simulation_plot_frame.pack(fill='both', expand=True)
 
