@@ -59,14 +59,12 @@ heading_label = ttk.Label(about_frame, text="About", font=('Helvetica', 14))
 heading_label.pack()
 
 
-
 # add frames to notebook
 notebook.add(calc_frame, text="Calculator")
 notebook.add(radial_plot_frame, text='Radial Plot')
 notebook.add(temporal_plot_frame, text='Temporal Plot')
 notebook.add(simulation_plot_frame, text="Simulation")
 notebook.add(about_frame, text='About')
-
 
 
 root.mainloop()
