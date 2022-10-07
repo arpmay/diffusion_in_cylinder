@@ -9,11 +9,10 @@ from hydroxy_func import C as c_in
 
 def radial_profile(t, a, D, conc, n):
     r_plot = []
-    for time in t:
-        plot = []
-        for i in range(0, n):
-            plot.append(c_out((i / n) * a, time, a, conc, D))
-        r_plot.append(plot)
+    plot = []
+    for i in range(0, n):
+        plot.append(c_out((i / n) * a, t, a, conc, D))
+    r_plot.append(plot)
     return r_plot
 
 
